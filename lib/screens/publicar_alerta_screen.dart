@@ -70,7 +70,8 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
 
   Future<String> _generarIdAlerta() async {
     final hoy = DateTime.now();
-    final fechaStr = "${hoy.year}${hoy.month.toString().padLeft(2, '0')}${hoy.day.toString().padLeft(2, '0')}";
+    final fechaStr =
+        "${hoy.year}${hoy.month.toString().padLeft(2, '0')}${hoy.day.toString().padLeft(2, '0')}";
 
     final query = await _firestore
         .collection('alertas')
@@ -139,7 +140,6 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
     _textController.text = alerta['texto'] ?? '';
     _tipoSeleccionado = alerta['tipo'] ?? 'Otro';
 
-    // Cargar imagen existente para poder mostrarla en el diálogo
     final imagenBase64 = alerta['imagenBase64'] as String?;
     if (imagenBase64 != null && imagenBase64.isNotEmpty) {
       _selectedImageBytes = base64Decode(imagenBase64);
@@ -192,9 +192,10 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
 
             return Padding(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: 16,
-                right: 16,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                left: 20,
+                right: 20,
               ),
               child: DecoratedBackground(
                 child: SingleChildScrollView(
@@ -206,14 +207,23 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10))),
-                        const SizedBox(height: 12),
-                        Text(editar ? "Editar Alerta" : "Nueva Alerta", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Container(
+                          width: 50,
+                          height: 5,
+                          decoration: BoxDecoration(
+                              color: Colors.grey.shade300, borderRadius: BorderRadius.circular(10)),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(editar ? "Editar Alerta" : "Nueva Alerta",
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
                           value: _tipoSeleccionado,
-                          items: tiposDeIncidente.map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo))).toList(),
+                          items: tiposDeIncidente
+                              .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                              .toList(),
                           decoration: InputDecoration(
                             labelText: "Tipo de incidente",
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -320,7 +330,7 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
     );
   }
 
-  // 🔹 Card de alerta
+  // 🔹 Tarjeta de alerta reducida y más compacta
   Widget _buildAlertaCard(String docId, Map<String, dynamic> alerta) {
     final fecha = (alerta['fecha'] as Timestamp?)?.toDate();
     final fechaFormateada = fecha != null
@@ -344,12 +354,12 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6), // menos espacio entre tarjetas
+      padding: const EdgeInsets.all(12), // tarjeta un poco más pequeña
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black26.withOpacity(0.08), blurRadius: 5)],
+        boxShadow: [BoxShadow(color: Colors.black26.withOpacity(0.08), blurRadius: 4)],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -371,38 +381,43 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(width: 7, height: 7, decoration: BoxDecoration(color: estadoColor, shape: BoxShape.circle)),
+                              const SizedBox(width: 4),
+                              Text("Estado: ${estado[0].toUpperCase()}${estado.substring(1)}",
+                                  style: TextStyle(color: estadoColor, fontSize: 11, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text("🆔 ${alerta['idAlerta'] ?? 'Desconocido'}", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                          Text("📍 Tipo: $tipo", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: Colors.black87)),
+                          Text(
+                            alerta['texto'] ?? '',
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13, height: 1.3),
+                          ),
+                          Text("👤 DNI: ${alerta['dniUsuario'] ?? 'No asignado'}", style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    Column(
                       children: [
-                        Container(width: 8, height: 8, decoration: BoxDecoration(color: estadoColor, shape: BoxShape.circle)),
-                        const SizedBox(width: 6),
-                        Text("Estado: ${estado[0].toUpperCase()}${estado.substring(1)}",
-                            style: TextStyle(color: estadoColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                        IconButton(icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent), onPressed: () => _editarAlerta(docId, alerta)),
+                        IconButton(icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent), onPressed: () => _eliminarAlerta(docId)),
                       ],
                     ),
-                    Text(fechaFormateada, style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text("🆔 ${alerta['idAlerta'] ?? 'Desconocido'}", style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                Text("📍 Tipo: $tipo", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.black87)),
-                Text(
-                  alerta['texto'] ?? '',
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14, height: 1.3),
-                ),
-                Text("👤 DNI: ${alerta['dniUsuario'] ?? 'No asignado'}", style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(icon: const Icon(Icons.edit, size: 18, color: Colors.blueAccent), onPressed: () => _editarAlerta(docId, alerta)),
-                      IconButton(icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent), onPressed: () => _eliminarAlerta(docId)),
-                    ],
-                  ),
-                ),
+                Text(fechaFormateada, style: const TextStyle(fontSize: 10, color: Colors.grey)),
               ],
             ),
           ),
@@ -413,31 +428,61 @@ class _PublicarAlertaScreenState extends State<PublicarAlertaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: DecoratedBackground(
-        child: StreamBuilder<QuerySnapshot>(
-          stream: _firestore.collection('alertas').orderBy('fecha', descending: true).snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Colors.white));
-            }
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            // Encabezado con título y eslogan alineados a la izquierda
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    "Alertas Comunitarias",
+                    style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    "Mantente informado de lo que pasa cerca de ti",
+                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Lista de alertas comenzando desde 3/4 de la pantalla hacia abajo
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: _firestore.collection('alertas').orderBy('fecha', descending: true).snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(color: Colors.white));
+                  }
 
-            final alertas = snapshot.data?.docs ?? [];
-            if (alertas.isEmpty) {
-              return const Center(child: Text("Aún no hay alertas publicadas.", style: TextStyle(color: Colors.white)));
-            }
+                  final alertas = snapshot.data?.docs ?? [];
+                  if (alertas.isEmpty) {
+                    return const Center(child: Text("Aún no hay alertas publicadas.", style: TextStyle(color: Colors.white)));
+                  }
 
-            return ListView.builder(
-              padding: const EdgeInsets.only(top: 12, bottom: 80),
-              itemCount: alertas.length,
-              itemBuilder: (context, index) {
-                final doc = alertas[index];
-                final alerta = doc.data() as Map<String, dynamic>;
-                return _buildAlertaCard(doc.id, alerta);
-              },
-            );
-          },
+                  return ListView.builder(
+                    padding: EdgeInsets.only(top: screenHeight * 0.05, bottom: 80),
+                    itemCount: alertas.length,
+                    itemBuilder: (context, index) {
+                      final doc = alertas[index];
+                      final alerta = doc.data() as Map<String, dynamic>;
+                      return _buildAlertaCard(doc.id, alerta);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
