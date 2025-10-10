@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1004603529507",
+    "project_id": "alertacom-620a9",
+    "storage_bucket": "alertacom-620a9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1004603529507:android:c7a58e43a91f31a7599496",
+        "android_client_info": {
+          "package_name": "com.example.alerta_com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDV8x1s0iiIh7fERI0sTm8U_IDDaNPeP4w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
